@@ -4,7 +4,7 @@ dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl Which version of the canonical setup we're using
-AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.176])
+AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.177])
 
 AC_DEFUN([PANDORA_MSG_ERROR],[
   AS_IF([test "x${pandora_cv_skip_requires}" != "xno"],[
@@ -49,6 +49,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   m4_define([PCT_NO_VC_CHANGELOG],[no])
   m4_define([PCT_VERSION_FROM_VC],[no])
   m4_define([PCT_USE_VISIBILITY],[yes])
+  m4_define([PCT_CMDLINE_DEFINES],[no])
   m4_foreach([pct_arg],[$*],[
     m4_case(pct_arg,
       [require-cxx], [
@@ -71,6 +72,10 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
         m4_undefine([PCT_NO_VC_CHANGELOG])
         m4_define([PCT_NO_VC_CHANGELOG],[yes])
       ],
+      [cmdline-defines], [
+        m4_undefine([PCT_CMDLINE_DEFINES])
+        m4_define([PCT_CMDLINE_DEFINES],[yes])
+      ],
       [version-from-vc], [
         m4_undefine([PCT_VERSION_FROM_VC])
         m4_define([PCT_VERSION_FROM_VC],[yes])
@@ -79,10 +84,12 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
 
   AC_CONFIG_MACRO_DIR([m4])
 
-  m4_if(m4_substr(m4_esyscmd(test -d src && echo 0),0,1),0,[
-    AC_CONFIG_HEADERS([src/config.h])
-  ],[
-    AC_CONFIG_HEADERS([config.h])
+  m4_if(PCT_CMDLINE_DEFINES,no,[
+      m4_if(m4_substr(m4_esyscmd(test -d src && echo 0),0,1),0,[
+        AC_CONFIG_HEADERS([src/config.h])
+        ],[
+        AC_CONFIG_HEADERS([config.h])
+        ])
   ])
 
   PANDORA_BLOCK_BAD_OPTIONS
