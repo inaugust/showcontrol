@@ -1,0 +1,5 @@
+project = videoServer
+version = 0.1.0
+template = pandora-build
+project-type = application
+pandora-version = 0.176
