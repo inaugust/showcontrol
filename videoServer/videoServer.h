@@ -1,6 +1,5 @@
-#ifndef _TEST_APP
-#define _TEST_APP
 
+#pragma once
 
 #include "ofMain.h"
 // addons
@@ -23,11 +22,11 @@
 //#define NUMOFLAYERS 10
 
 
-class testApp : public ofBaseApp
+class VideoServer : public ofBaseApp
 {
     public:
-        testApp();
-        ~testApp();
+        VideoServer();
+        ~VideoServer();
         void clearAll();
 
     private:
@@ -68,17 +67,15 @@ class testApp : public ofBaseApp
 
 		void setup();
 		void update();
-		void draw();
+		void drawAll();
 		void keyPressed(int key);
 		void loadMedia(); // reading XML
 		bool initGrabberDevice(int id);
 
 
 
-        void mouseMoved(int x, int y );
-		void mouseDragged(int x, int y, int button);
-		void mousePressed(int x, int y, int button);
-		void mouseReleased(int x, int y, int button);
+                void mouseMoved(int x, int y );
+                void mouseDragged(int x, int y, int button);
+                void mousePressed(int x, int y, int button);
+                void mouseReleasedEvent(int x, int y, int button);
 };
-
-#endif

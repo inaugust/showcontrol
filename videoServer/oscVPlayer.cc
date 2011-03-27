@@ -5,15 +5,14 @@
 
 
 
-oscVPlayer::oscVPlayer()
-{
-    reset();
-//        w = ofGetWidth();
-//    h = ofGetHeight();
-//    x = 0;
-//    y = 0;
-//    donereported = false;
-}
+oscVPlayer::oscVPlayer() :
+  x(0),
+  y(0),
+  w(0),
+  h(0),
+  donereported(false),
+  loopflag(OF_LOOP_NONE)
+{ }
 
 void oscVPlayer::reset()
 {   //defaults to fullscreen
@@ -27,14 +26,14 @@ void oscVPlayer::reset()
 //        w = ofGetWidth();
 //        h = ofGetHeight();
 //    }
-    w = NULL;
-    h = NULL;
     x = 0;
     y = 0;
+    w = 0;
+    h = 0;
     donereported = false;
-    loopflag = true;
+    loopflag = OF_LOOP_NONE;
 
-    if (bLoaded)
+    if (isLoaded())
 	{
         setFrame(0);
         setUseTexture(1);
@@ -47,7 +46,7 @@ void oscVPlayer::reset()
 }
 
 
-void oscVPlayer::setUpVideo(string movie)
+void oscVPlayer::setUpVideo(const string& movie)
 {
     if (movie != "none")
     {
@@ -96,17 +95,17 @@ void oscVPlayer::setLoop()
 
 void oscVPlayer::resetSize()
 {
-    w = NULL;
-    h = NULL;
+    w = 0;
+    h = 0;
 }
 
 
-void oscVPlayer::draw()
+void oscVPlayer::drawAll()
 {
-	if (bLoaded)
+	if (isLoaded())
 	{
 	    ofSetColor(0xFFFFFF);
-	    if (w==NULL && h==NULL)
+	    if (w==0 && h==0)
 	    {
 	        ofVideoPlayer::draw(x, y);
 	    }

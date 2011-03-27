@@ -1,27 +1,37 @@
 #include <config.h>
 
-#include "testApp.h"
+#include "videoServer.h"
 
 
 
 //--------------------------------------------------------------
-testApp::testApp()
-{
-    connected = false;
+VideoServer::VideoServer() :
+  receiver(),
+  sender(),
+  connected(false),
+  XML(),
+  msg_string(""),
+  verbose(0),
+  numoflayers(10),
+  reportinput(0),
+  isGrabberInit(false),
+  vidGrabber(),
+  grabbers(),
+  players(),
+  images(),
+  colorImg(),
+  grayImage(),
+  grayBg(),
+  grayDiff(),
+  contourFinder(),
+  threshold(80),
+  bLearnBakground(false),
+  trackOpenCV(false),
+  plotblobs(false)
+{ }
 
-    numoflayers = 10;
 
-    isGrabberInit = false;
-
-    // opencv
-    trackOpenCV = false;
-    bLearnBakground = true;
-    threshold = 80;
-    plotblobs = false;
-}
-
-
-testApp::~testApp()
+VideoServer::~VideoServer()
 {
     printf("closing down app...................\n");
     clearAll();
@@ -30,7 +40,7 @@ testApp::~testApp()
 }
 
 
-void testApp::clearAll()
+void VideoServer::clearAll()
 {
     printf("clearing all objects in server\n");
 
@@ -57,7 +67,7 @@ void testApp::clearAll()
 }
 
 //--------------------------------------------------------------
-void testApp::setup()
+void VideoServer::setup()
 {
     //ofSetVerticalSync(true); // sync frame rate with monitor refresh rate
     //ofSetFrameRate(24);
@@ -136,7 +146,7 @@ void testApp::setup()
     for (int i = 0; i < numoflayers; i++ )
     {
         players.push_back( oscVPlayer() );
-        grabbers.push_back( oscVGrabber(&vidGrabber) );
+        grabbers.push_back( oscVGrabber(vidGrabber) );
         images.push_back( oscImage() );
     }
 
@@ -157,7 +167,7 @@ void testApp::setup()
 
 /* tries to load media reading media_load.xml file
 */
-void testApp::loadMedia()
+void VideoServer::loadMedia()
 {
     // LOADING Media on startup //
     if( !XML.loadFile("media_load.xml") ) // if error loading
@@ -187,7 +197,7 @@ void testApp::loadMedia()
                     players.at( id ).w = XML.getValue("video:width", 100, i);
                     players.at( id ).h = XML.getValue("video:height", 100, i);
 
-                    int lp = XML.getValue("video:loop", 1, i) ? OF_LOOP_NORMAL : OF_LOOP_NONE ;
+                    ofLoopType lp = XML.getValue("video:loop", 1, i) ? OF_LOOP_NORMAL : OF_LOOP_NONE ;
                     players.at( id ).setLoopState(lp);
 
                     int volume = XML.getValue("video:volume", 255, i);
@@ -262,7 +272,7 @@ void testApp::loadMedia()
 
 
 
-bool testApp::initGrabberDevice(int id)
+bool VideoServer::initGrabberDevice(int id)
 {
     vidGrabber.setVerbose(true);
     vidGrabber.setDeviceID( id );
@@ -294,7 +304,7 @@ bool testApp::initGrabberDevice(int id)
 
 
 //--------------------------------------------------------------
-void testApp::update()
+void VideoServer::update()
 {
     if ( connected == true )
     {
@@ -320,10 +330,10 @@ void testApp::update()
             }
             else if (m.getAddress() == "/server/ping")
             {
-                ofxOscMessage m;
-                m.setAddress( "/server/connected" );
-                m.addIntArg( 1 );
-                sender.sendMessage( m ); // report back that we are alive and clicking here!
+                ofxOscMessage msg;
+                msg.setAddress( "/server/connected" );
+                msg.addIntArg( 1 );
+                sender.sendMessage( msg ); // report back that we are alive and clicking here!
             }
             else if (m.getAddress() == "/server/clear")
             {
@@ -400,7 +410,7 @@ void testApp::update()
             }
             else if ( m.getAddress() == "/player/play")
             {
-                if (players.at( m.getArgAsInt32( 0 ) ).bLoaded) // otherwise it crashes
+                if (players.at( m.getArgAsInt32( 0 ) ).isLoaded()) // otherwise it crashes
                 {
                     if ( m.getArgAsInt32( 1 ) == 1 )
                     {
@@ -453,9 +463,9 @@ void testApp::update()
             }
             else if (m.getAddress() == "/player/loop")
             {   // beware that i is an int and not a bool
-                if (players.at( m.getArgAsInt32( 0 ) ).bLoaded) // otherwise it crashes
+                if (players.at( m.getArgAsInt32( 0 ) ).isLoaded()) // otherwise it crashes
                 {
-                    int i = m.getArgAsInt32( 1 ) ? OF_LOOP_NORMAL : OF_LOOP_NONE ; // converts 0/1 to 1/3
+                    ofLoopType i = m.getArgAsInt32( 1 ) ? OF_LOOP_NORMAL : OF_LOOP_NONE ; // converts 0/1 to 1/3
                     players.at( m.getArgAsInt32( 0 ) ).loopflag = i; // remember for setting when playing
                     players.at( m.getArgAsInt32( 0 ) ).setLoopState(i);
                     if ( !players.at(i).getIsMovieDone() ) players.at(i).donereported = false; // make sure it reports on stop
@@ -476,7 +486,7 @@ void testApp::update()
             }
             else if (m.getAddress() == "/player/render")
             {
-                if ( players.at( m.getArgAsInt32( 0 ) ).bLoaded ) // otherwise crashes
+                if ( players.at( m.getArgAsInt32( 0 ) ).isLoaded() ) // otherwise crashes
                 {
                     bool b = m.getArgAsInt32( 1 ) ? true : false ; // not sure this is good
                     players.at( m.getArgAsInt32( 0 ) ).setUseTexture( b );
@@ -682,7 +692,7 @@ void testApp::update()
                 ofxOscBundle b;
                 ofxOscMessage m;
 
-                for (int n=0; n < contourFinder.blobs.size(); n++ )
+                for (size_t n=0; n < contourFinder.blobs.size(); n++ )
                 {
                     m.setAddress( "/server/opencv" );
                     m.addIntArg( n );
@@ -701,7 +711,7 @@ void testApp::update()
     // Update videos //
     for (int i = 0; i < numoflayers; i++ )
     {
-        if ( players.at(i).bLoaded )
+        if ( players.at(i).isLoaded() )
         {
             players.at(i).idleMovie();
 
@@ -722,19 +732,19 @@ void testApp::update()
 }
 
 //--------------------------------------------------------------
-void testApp::draw()
+void VideoServer::drawAll()
 {
     for (int i = 0; i < numoflayers; i++ )
     {
-        players.at(i).draw();
-        images.at(i).draw();
+        players.at(i).drawAll();
+        images.at(i).drawAll();
         grabbers.at(i).draw();
     }
 
     if (plotblobs && trackOpenCV) // tracking and want to plot the blobs
     {
         for (int i = 0; i < contourFinder.nBlobs; i++)
-            contourFinder.draw( (float)0, (float)0, vidGrabber.getWidth(), vidGrabber.getHeight() );
+            contourFinder.draw( float(0), float(0), vidGrabber.getWidth(), vidGrabber.getHeight() );
     }
 
 //    // snapshot stuff. to later delete
@@ -764,7 +774,7 @@ void testApp::draw()
 
 
 
-void testApp::keyPressed  (int key)
+void VideoServer::keyPressed  (int key)
 {
     if (reportinput == 1)
     {
@@ -791,7 +801,7 @@ void testApp::keyPressed  (int key)
 
 
 //--------------------------------------------------------------
-void testApp::mouseMoved(int x, int y )
+void VideoServer::mouseMoved(int x, int y )
 {
     if (reportinput==1)
     {
@@ -804,7 +814,7 @@ void testApp::mouseMoved(int x, int y )
 }
 
 //--------------------------------------------------------------
-void testApp::mouseDragged(int x, int y, int button)
+void VideoServer::mouseDragged(int x, int y, int button)
 {
     if (reportinput==1)
     {
@@ -818,7 +828,7 @@ void testApp::mouseDragged(int x, int y, int button)
 }
 
 //--------------------------------------------------------------
-void testApp::mousePressed(int x, int y, int button)
+void VideoServer::mousePressed(int x, int y, int button)
 {
     if (reportinput==1)
     {
@@ -832,7 +842,7 @@ void testApp::mousePressed(int x, int y, int button)
 }
 
 //--------------------------------------------------------------
-void testApp::mouseReleased(int x, int y, int button)
+void VideoServer::mouseReleasedEvent(int x, int y, int button)
 {
     if (reportinput==1)
     {

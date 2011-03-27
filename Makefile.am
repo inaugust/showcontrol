@@ -7,6 +7,16 @@ noinst_HEADERS= \
 		videoServer/videoServer.h
 
 sbin_PROGRAMS=videoServer/videoServer
+videoServer_videoServer_LDFLAGS= \
+				 ${AM_LDFLAGS} \
+				 ${openframeworks_LIBS} \
+				 ${opencv_LIBS} \
+				 -ludev \
+				 -lofxOsc \
+				 -loscpack \
+				 -lofxXmlSettings \
+				 -lofxOpenCv
+
 videoServer_videoServer_CXXFLAGS= \
 				  ${AM_CXXFLAGS} \
 				  ${opencv_CFLAGS} \

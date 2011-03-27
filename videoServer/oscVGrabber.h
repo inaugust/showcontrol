@@ -1,28 +1,26 @@
-#ifndef OSCVGRABBER_H
-#define OSCVGRABBER_H
+#pragma once
 
-#include <ofVideoGrabber.h>
+class ofVideoGrabber;
 
-
-class oscVGrabber //: public ofVideoGrabber
+class oscVGrabber /*: public ofVideoGrabber */
 {
-    public:
-        oscVGrabber(ofVideoGrabber* vg);
-        //virtual ~oscVGrabber();
+public:
+  explicit oscVGrabber(ofVideoGrabber& vg);
+  oscVGrabber(const oscVGrabber& old);
+  oscVGrabber& operator=(const oscVGrabber&);
+  virtual ~oscVGrabber();
 
-        void draw();
-        void setup();
-        void setRender(int b);
-        void resetSize();
+  void draw();
+  void setup();
+  void setRender(int b);
+  void resetSize();
 
-        void reset();
+  void reset();
 
-        int x,y,w,h;
-        bool init;
+  int x,y,w,h;
+  bool init;
 
-    protected:
-    private:
-        ofVideoGrabber* vGr;
+private:
+  oscVGrabber();
+  ofVideoGrabber& vGr;
 };
-
-#endif // OSCVGRABBER_H

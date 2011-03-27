@@ -1,17 +1,19 @@
+#include <config.h>
+
 #include "oscImage.h"
 #include "ofMain.h"
 
 
 
-oscImage::oscImage()
+oscImage::oscImage() :
+  x(0),
+  y(0),
+  w(ofGetWidth()),
+  h(ofGetHeight()),
+  bLoaded(false),
+  alpha(false)
 {
     reset();
-//        x = 0;
-//    y = 0;
-//    w = ofGetWidth();
-//    h = ofGetHeight();
-//    bLoaded = false;
-//    alpha = false;
 }
 
 
@@ -29,8 +31,8 @@ void oscImage::reset()
 //        w = ofGetWidth();
 //        h = ofGetHeight();
 //    }
-    w = NULL;
-    h = NULL;
+    w = 0;
+    h = 0;
     bLoaded = false;
     alpha = false;
 
@@ -63,14 +65,14 @@ void oscImage::setup(string file)
 
 void oscImage::resetSize()
 {
-    w = NULL;
-    h = NULL;
+    w = 0;
+    h = 0;
 }
 
 
 
 
-void oscImage::draw()
+void oscImage::drawAll()
 {
 	if (bLoaded)
 	{
@@ -78,7 +80,7 @@ void oscImage::draw()
 //	    {
             if (alpha) ofEnableAlphaBlending();
 
-            if (w==NULL && w==NULL)
+            if (w==0 && h==0)
             {
                 ofImage::draw(x, y);
             }

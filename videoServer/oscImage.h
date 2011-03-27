@@ -10,7 +10,7 @@ class oscImage : public ofImage
         oscImage();
         //virtual ~oscVPlayer();
 
-        void draw();
+        void drawAll();
         void reset();
         void resetSize();
 

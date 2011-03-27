@@ -3,26 +3,49 @@
 #include "oscVGrabber.h"
 #include "ofMain.h"
 
-oscVGrabber::oscVGrabber(ofVideoGrabber* vg)
-{
-//    //defaults to fullscreen
-//    w = ofGetWidth();
-//    h = ofGetHeight();
-//    x = 0;
-//    y = 0;
-//
-//    init = false;
-    reset();
+#include <ofVideoGrabber.h>
 
-    vGr = vg;
-        //printf("%i", vGr->getWidth());
+oscVGrabber::oscVGrabber(ofVideoGrabber& vg) :
+  x(0),
+  y(0),
+  w(0),
+  h(0),
+  init(false),
+  vGr(vg)
+{
+//    //defaults to fullscreen w = ofGetWidth(); h = ofGetHeight(); x = 0;
+//    y = 0;
 }
 
+oscVGrabber::oscVGrabber(const oscVGrabber& old) :
+  x(old.x),
+  y(old.y),
+  w(old.w),
+  h(old.h),
+  init(old.init),
+  vGr(old.vGr)
+{ }
+
+oscVGrabber::~oscVGrabber()
+{
+    //dtor
+}
+
+oscVGrabber& oscVGrabber::operator=(const oscVGrabber& old)
+{
+  x= old.x;
+  y= old.y;
+  w= old.w;
+  h= old.h;
+  init= old.init;
+  vGr= old.vGr;
+  return *this;
+}
 
 void oscVGrabber::resetSize()
 {
-    w = NULL;
-    h = NULL;
+    w = 0;
+    h = 0;
 }
 
 void oscVGrabber::setup()
@@ -42,10 +65,10 @@ void oscVGrabber::reset()
 //        w = ofGetWidth();
 //        h = ofGetHeight();
 //    }
-    w = NULL;
-    h = NULL;
     x = 0;
     y = 0;
+    w = 0;
+    h = 0;
 
     init = false;
 
@@ -56,13 +79,13 @@ void oscVGrabber::draw()
 {
     if (init==true)
     {
-        if (w==NULL && h==NULL)
+        if (w==0 && h==0)
         {
-            vGr->draw(x,y);
+            vGr.draw(x,y);
         }
         else
         {
-            vGr->draw(x,y,w,h);
+            vGr.draw(x,y,w,h);
         }
     }
 }
@@ -77,7 +100,3 @@ void oscVGrabber::setRender(int b)
 
 
 
-//oscVGrabber::~oscVGrabber()
-//{
-//    //dtor
-//}
