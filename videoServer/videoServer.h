@@ -67,7 +67,7 @@ class VideoServer : public ofBaseApp
 
 		void setup();
 		void update();
-		void drawAll();
+		void draw();
 		void keyPressed(int key);
 		void loadMedia(); // reading XML
 		bool initGrabberDevice(int id);

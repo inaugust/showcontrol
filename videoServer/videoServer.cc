@@ -54,7 +54,7 @@ void VideoServer::clearAll()
   for (int i = 0; i < numoflayers; i++ )
   {
     players.at(i).close();
-    players.at( i ).reset();
+    players.at(i).reset();
     images.at(i).reset();
     images.at(i).clear();
     grabbers.at(i).reset();
@@ -305,6 +305,7 @@ bool VideoServer::initGrabberDevice(int id)
 //--------------------------------------------------------------
 void VideoServer::update()
 {
+  std::cout << "In update()" << std::endl;
   if ( connected == true )
   {
     int fail = 0;
@@ -340,7 +341,7 @@ void VideoServer::update()
         for (int i = 0; i < numoflayers; i++ )
         {
           players.at(i).close();
-          players.at( i ).reset();
+          players.at(i).reset();
           images.at(i).reset();
           images.at(i).clear();
           grabbers.at(i).reset();
@@ -731,7 +732,7 @@ void VideoServer::update()
 }
 
 //--------------------------------------------------------------
-void VideoServer::drawAll()
+void VideoServer::draw()
 {
   for (int i = 0; i < numoflayers; i++ )
   {
