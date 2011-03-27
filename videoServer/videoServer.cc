@@ -305,7 +305,6 @@ bool VideoServer::initGrabberDevice(int id)
 //--------------------------------------------------------------
 void VideoServer::update()
 {
-  std::cout << "In update()" << std::endl;
   if ( connected == true )
   {
     int fail = 0;

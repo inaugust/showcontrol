@@ -104,7 +104,7 @@ void oscVPlayer::drawAll()
 {
 	if (isLoaded())
 	{
-	    ofSetColor(0xFFFFFF);
+	    ofSetHexColor(0xFFFFFF);
 	    if (w==0 && h==0)
 	    {
 	        ofVideoPlayer::draw(x, y);
