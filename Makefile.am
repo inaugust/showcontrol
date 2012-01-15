@@ -11,6 +11,7 @@ videoServer_videoServer_LDFLAGS= \
 				 ${AM_LDFLAGS} \
 				 ${openframeworks_LIBS} \
 				 ${opencv_LIBS} \
+				 ${libola_LIBS} \
 				 -ludev \
 				 -lofxOsc \
 				 -loscpack \

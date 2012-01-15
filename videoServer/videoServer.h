@@ -1,6 +1,9 @@
 
 #pragma once
 
+#include <ola/DmxBuffer.h>
+#include <ola/StreamingClient.h>
+
 #include "ofMain.h"
 // addons
 #include "ofxOsc.h"
@@ -57,6 +60,9 @@ class VideoServer : public ofBaseApp
         ofxCvContourFinder 	    contourFinder;
 		int threshold;
 		bool bLearnBakground, trackOpenCV, plotblobs;
+
+                ola::DmxBuffer dmxBuffer;
+                ola::StreamingClient ola_client;
 
 		// snapshot stuff // delete or comment out!
 //        bool takeShot;

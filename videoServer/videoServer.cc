@@ -1,7 +1,22 @@
 #include <config.h>
+       #include <sys/types.h>
+       #include <sys/stat.h>
+       #include <fcntl.h>
+       #include <termios.h>
+       #include <sys/ioctl.h>
+
 
 #include "videoServer.h"
 
+#include <cstdlib>
+#include <ola/DmxBuffer.h>
+#include <ola/Logging.h>
+#include <ola/StreamingClient.h>
+
+uint8_t buffer[513];
+int m_fd;
+
+static const int universe= 0;
 
 //--------------------------------------------------------------
 VideoServer::VideoServer() :
@@ -26,7 +41,9 @@ VideoServer::VideoServer() :
   threshold(80),
   bLearnBakground(false),
   trackOpenCV(false),
-  plotblobs(false)
+  plotblobs(false),
+  dmxBuffer(),
+  ola_client()
 { }
 
 
@@ -65,11 +82,33 @@ void VideoServer::clearAll()
   images.clear();     // image files
 }
 
+static void setMoverPower(ola::DmxBuffer &dmxBuffer)
+{
+
+  // LED Power
+  dmxBuffer.SetChannel(138, 255);
+  dmxBuffer.SetChannel(5, 255);
+  dmxBuffer.SetChannel(80, 255);
+  dmxBuffer.SetChannel(68, 255);
+  dmxBuffer.SetChannel(64, 255);
+  dmxBuffer.SetChannel(9, 255);
+  dmxBuffer.SetChannel(19, 255);
+
+  dmxBuffer.SetChannel(23, 255);
+  dmxBuffer.SetChannel(24, 255);
+  dmxBuffer.SetChannel(25, 255);
+  dmxBuffer.SetChannel(27, 255);
+  dmxBuffer.SetChannel(2, 255);
+  dmxBuffer.SetChannel(28, 255);
+  dmxBuffer.SetChannel(25, 255);
+
+}
+
 //--------------------------------------------------------------
 void VideoServer::setup()
 {
   //ofSetVerticalSync(true); // sync frame rate with monitor refresh rate
-  //ofSetFrameRate(24);
+  ofSetFrameRate(40);
 
   /////////////////////////////////////////////
   ofSetLogLevel(OF_LOG_VERBOSE);
@@ -130,8 +169,8 @@ void VideoServer::setup()
   int b = XML.getValue("oscVideoServer:color:blue", 255);
   ofBackground(r,g,b); // bg color
 
-  int fps = XML.getValue("oscVideoServer:fps", 24);
-  ofSetFrameRate(fps);
+  //xxx int fps = XML.getValue("oscVideoServer:fps", 24);
+  //xxx ofSetFrameRate(fps);
 
   // length of vectors containing videos and grabbers
   numoflayers = XML.getValue("oscVideoServer:numoflayers", 10);
@@ -153,6 +192,45 @@ void VideoServer::setup()
 
   XML.clear();
 
+  memset(&buffer, 0, 513);
+  buffer[0] = 0;
+  buffer[138] = 255;
+  buffer[5] = 255;
+  buffer[80] = 255;
+  buffer[68] = 255;
+  buffer[64] = 255;
+  buffer[9] = 255;
+  buffer[19] = 255;
+
+  buffer[24] = 255;
+  buffer[27] = 255;
+  buffer[2] = 255;
+  buffer[28] = 255;
+  buffer[25] = 255;
+  m_fd= open("/dev/ttyUSB0", O_WRONLY);
+
+  //jeb
+  struct termios tp;
+  tcgetattr( m_fd, &tp );
+  tp.c_cflag &= ~PARENB;
+  //tp.c_cflag &= ~CSTOPB;
+  //tp.c_cflag &= ~CSIZE;
+  tp.c_cflag |= CLOCAL | CSTOPB;
+  //tcsetattr( m_fd, TCSANOW, &tp );
+
+
+  /*
+    ola::InitLogging(ola::OLA_LOG_WARN, ola::OLA_LOG_STDERR);
+  dmxBuffer.Blackout();
+  setMoverPower(dmxBuffer);
+  // Setup the client, this connects to the server
+  if (!ola_client.Setup())
+  {
+    cout << "Setup failed" << endl;
+    exit();
+  }
+
+*/
   // broadcast welcome message
   ofxOscMessage m;
   m.setAddress( "/server/welcome" );
@@ -352,7 +430,7 @@ void VideoServer::update()
       }
       else if (m.getAddress() == "/server/fps")
       {
-        ofSetFrameRate( m.getArgAsInt32( 0 ) );
+        //xxx ofSetFrameRate( m.getArgAsInt32( 0 ) );
       }
       else if (m.getAddress() == "/server/cursor")
       {
@@ -727,12 +805,14 @@ void VideoServer::update()
   }
 
 
+  setMoverPower(dmxBuffer);
 
 }
 
 //--------------------------------------------------------------
 void VideoServer::draw()
 {
+
   for (int i = 0; i < numoflayers; i++ )
   {
     players.at(i).drawAll();
@@ -745,6 +825,19 @@ void VideoServer::draw()
     for (int i = 0; i < contourFinder.nBlobs; i++)
       contourFinder.draw( float(0), float(0), vidGrabber.getWidth(), vidGrabber.getHeight() );
   }
+
+  //jeb
+  printf("a\n");
+  int ret1 = ioctl(m_fd, TIOCSBRK);
+  usleep(88);
+  int ret2 = ioctl(m_fd, TIOCCBRK);
+
+  tcsendbreak(m_fd, 0);
+  printf("b %i %i\n", ret1, ret2);
+  ssize_t written = write(m_fd, buffer, 513);
+  printf("%f %d\n", ofGetFrameRate(), int(written));
+  if (written != 512) { exit(); }
+  //ola_client.SendDmx(universe, dmxBuffer);
 
   //    // snapshot stuff. to later delete
   //    if ( ofGetElapsedTimeMillis() < shotTimeOut )

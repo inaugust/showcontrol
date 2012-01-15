@@ -33,6 +33,7 @@ PANDORA_CANONICAL_TARGET(require-cxx, force-gcc42)
 
 PKG_CHECK_MODULES([openframeworks],[openFrameworks])
 PKG_CHECK_MODULES([opencv],[opencv])
+PKG_CHECK_MODULES([libola],[libola])
 
 AC_DEFINE([SKIP_FMODEX],[1],[fmodex is the devil])
 
